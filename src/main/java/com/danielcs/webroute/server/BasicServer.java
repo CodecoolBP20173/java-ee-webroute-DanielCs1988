@@ -11,15 +11,22 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 public class BasicServer implements Server {
 
     private final int PORT;
     private final String CONTROLLERS_PATH;
+    private int maxThreads = 100;
 
     public BasicServer(int port, String controllersPath) {
         this.PORT = port;
         this.CONTROLLERS_PATH = controllersPath;
+    }
+
+    public BasicServer(int port, String controllersPath, int maxThreads) {
+        this(port, controllersPath);
+        this.maxThreads = maxThreads;
     }
 
     private Set<Method> scanClassPath() {
@@ -54,7 +61,7 @@ public class BasicServer implements Server {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
             setupContext(server);
-            server.setExecutor(null);
+            server.setExecutor(Executors.newFixedThreadPool(maxThreads));
             server.start();
         } catch (IOException e) {
             System.out.println("Failed to open connection!");
