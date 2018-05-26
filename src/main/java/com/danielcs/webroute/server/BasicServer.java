@@ -1,6 +1,5 @@
 package com.danielcs.webroute.server;
 
-import com.danielcs.webroute.controllers.TestController;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.reflections.Reflections;
@@ -9,10 +8,9 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.util.Set;
+import java.util.*;
 
 public class BasicServer implements Server {
 
@@ -32,12 +30,23 @@ public class BasicServer implements Server {
         return reflections.getMethodsAnnotatedWith(WebRoute.class);
     }
 
-    private void setupContext(HttpServer server) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    private void setupContext(HttpServer server) {
         Set<Method> controllers = scanClassPath();
+        Map<String, Map<String, Method>> pathMappings = new HashMap<>();
         for (Method controller : controllers) {
             WebRoute route = controller.getAnnotation(WebRoute.class);
-            HttpHandler handler = (HttpHandler) controller.getDeclaringClass().getConstructor().newInstance();
-            server.createContext(route.path(), handler);
+            if (pathMappings.containsKey(route.path())) {
+                pathMappings.get(route.path()).put(route.method().toString(), controller);
+            } else {
+                Map<String, Method> methodMappings = new HashMap<>();
+                methodMappings.put(route.method().toString(), controller);
+                pathMappings.put(route.path(), methodMappings);
+            }
+        }
+        System.out.println(pathMappings);
+        for (String path : pathMappings.keySet()) {
+            HttpHandler dispatcher = new DispatcherServer(pathMappings.get(path));
+            server.createContext(path, dispatcher);
         }
     }
 
@@ -49,14 +58,6 @@ public class BasicServer implements Server {
             server.start();
         } catch (IOException e) {
             System.out.println("Failed to open connection!");
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
     }
