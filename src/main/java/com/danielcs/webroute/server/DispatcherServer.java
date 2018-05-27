@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -54,14 +55,25 @@ public class DispatcherServer implements HttpHandler {
         return vars;
     }
 
+    private void handlePageNotFound(HttpExchange http) throws IOException {
+        String resp = "<h1>The page you requested could not be found on the server.</h1>";
+        http.sendResponseHeaders(404, resp.getBytes().length);
+        OutputStream out = http.getResponseBody();
+        out.write(resp.getBytes());
+        out.close();
+    }
+
     public void handle(HttpExchange http) throws IOException {
         String method = http.getRequestMethod();
         List<String> pathVars = new ArrayList<>();
         if (path != null) {
             pathVars = extractPathVariables(http);
         }
-        if (pathVars == null) return;
-        handlers.get(method).handleRequest(http, pathVars);
+        if (pathVars == null) {
+            handlePageNotFound(http);
+        } else {
+            handlers.get(method).handleRequest(http, pathVars);
+        }
     }
 
     private final class Handler {
