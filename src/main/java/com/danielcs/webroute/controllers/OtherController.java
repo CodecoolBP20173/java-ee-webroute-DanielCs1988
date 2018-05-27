@@ -10,9 +10,9 @@ import java.io.OutputStream;
 
 public class OtherController {
 
-    @WebRoute(path = "/other")
-    public void doGet(HttpExchange http) throws IOException {
-        String resp = "<h1>This is an even better route! //GET</h1>";
+    @WebRoute(path = "/other/<var>/kek/<lekek>")
+    public void doGet(HttpExchange http, String var, String var2) throws IOException {
+        String resp = "<h1>This is an even better route! Var: " + var + ", " + var2 + "</h1>";
         http.sendResponseHeaders(200, resp.getBytes().length);
         OutputStream out = http.getResponseBody();
         out.write(resp.getBytes());

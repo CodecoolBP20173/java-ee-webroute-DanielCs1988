@@ -42,18 +42,19 @@ public class BasicServer implements Server {
         Map<String, Map<String, Method>> pathMappings = new HashMap<>();
         for (Method controller : controllers) {
             WebRoute route = controller.getAnnotation(WebRoute.class);
-            if (pathMappings.containsKey(route.path())) {
-                pathMappings.get(route.path()).put(route.method().toString(), controller);
+            String path = route.path();
+            if (pathMappings.containsKey(path)) {
+                pathMappings.get(path).put(route.method().toString(), controller);
             } else {
                 Map<String, Method> methodMappings = new HashMap<>();
                 methodMappings.put(route.method().toString(), controller);
-                pathMappings.put(route.path(), methodMappings);
+                pathMappings.put(path, methodMappings);
             }
         }
-        System.out.println(pathMappings);
         for (String path : pathMappings.keySet()) {
-            HttpHandler dispatcher = new DispatcherServer(pathMappings.get(path));
-            server.createContext(path, dispatcher);
+            String pathURI = path.replaceAll("<.*", "");
+            HttpHandler dispatcher = new DispatcherServer(pathMappings.get(path), path);
+            server.createContext(pathURI, dispatcher);
         }
     }
 
