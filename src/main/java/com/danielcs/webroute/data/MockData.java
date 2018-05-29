@@ -1,12 +1,7 @@
 package com.danielcs.webroute.data;
 
-import com.danielcs.webroute.models.Superhero;
-import com.danielcs.webroute.models.Superpower;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import com.danielcs.webroute.models.*;
+import java.util.*;
 
 public class MockData {
 

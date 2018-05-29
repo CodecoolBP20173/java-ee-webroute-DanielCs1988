@@ -13,6 +13,14 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.Executors;
 
+/*
+ * A basic implementation of the server interface, this class serves Http requests.
+ * You have to set the PORT and the CONTROLLER PATH in the constructor.
+ * The PATH will be automatically scanned for controllers annotated with the WebRoute annotation,
+ * paths and methods are bound within the server instance, execution is passed to your methods.
+ * It is also possible to pass the number of maximum connections the server can handle in the contructor,
+ * the default value is 100.
+ */
 public class BasicServer implements Server {
 
     private final int PORT;
@@ -53,11 +61,14 @@ public class BasicServer implements Server {
         }
         for (String path : pathMappings.keySet()) {
             String pathURI = path.replaceAll("<.*", "");
-            HttpHandler dispatcher = new DispatcherServer(pathMappings.get(path), path);
+            HttpHandler dispatcher = new RequestDispatcher(pathMappings.get(path), path);
             server.createContext(pathURI, dispatcher);
         }
     }
 
+    /*
+     * Scans the classpath for configured routes then start listening on the preset port for requests.
+     */
     public void start() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
@@ -66,12 +77,11 @@ public class BasicServer implements Server {
             server.start();
         } catch (IOException e) {
             System.out.println("Failed to open connection!");
-            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        Server s = new BasicServer(8000, "com.danielcs.webroute.controllers");
-        s.start();
+        Server server = new BasicServer(8000, "com.danielcs.webroute.controllers");
+        server.start();
     }
 }

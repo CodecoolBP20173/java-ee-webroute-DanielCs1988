@@ -9,12 +9,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class DispatcherServer implements HttpHandler {
+class RequestDispatcher implements HttpHandler {
 
     private Map<String, Handler> handlers = new HashMap<>();
     private String path;
 
-    public DispatcherServer(Map<String, Method> methods, String path) {
+    RequestDispatcher(Map<String, Method> methods, String path) {
         initHandlers(methods);
         if (path.matches(".*/<.*>.*")) {
             this.path = path;
@@ -83,12 +83,12 @@ public class DispatcherServer implements HttpHandler {
         private final Object caller;
         private final Method method;
 
-        public Handler(Object caller, Method method) {
+        Handler(Object caller, Method method) {
             this.caller = caller;
             this.method = method;
         }
 
-        public void handleRequest(HttpExchange http, List<Object> args) {
+        void handleRequest(HttpExchange http, List<Object> args) {
             try {
                 Object[] params = new Object[args.size() + 1];
                 params[0] = http;
