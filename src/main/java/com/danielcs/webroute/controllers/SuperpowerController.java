@@ -12,10 +12,13 @@ import java.io.IOException;
 
 public class SuperpowerController {
 
-    @WebRoute(path = "/superpower/<id>")
-    public void getSuperpower(HttpExchange http, String id) throws IOException {
-        Superpower power = MockData.superPowers.get(Integer.valueOf(id));
-        String resp = Converter.convertToJson(power);
+    @WebRoute(path = "/superpower/<id:int>")
+    public void getSuperpower(HttpExchange http, int id) throws IOException {
+        Superpower power = null;
+        try {
+            power = MockData.superPowers.get(id);
+        } catch (IndexOutOfBoundsException e) {}
+        String resp = power != null ? Converter.convertToJson(power) : "Superpower could not be found.";
         HttpUtils.render(http, resp);
     }
 

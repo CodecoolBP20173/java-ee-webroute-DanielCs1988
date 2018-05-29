@@ -7,13 +7,16 @@ import com.danielcs.webroute.server.WebRoute;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class SuperheroController {
 
-    @WebRoute(path = "/superhero/<id>")
-    public void getSuperhero(HttpExchange http, String id) throws IOException {
-        Superhero hero = MockData.superHeroes.get(Integer.valueOf(id));
-        String resp = Converter.convertToJson(hero);
+    @WebRoute(path = "/superhero/<alias>")
+    public void getHeroByAlias(HttpExchange http, String alias) throws IOException {
+        Optional<Superhero> superhero = MockData.superHeroes.stream()
+                .filter(hero -> hero.getAlias().equals(alias))
+                .findFirst();
+        String resp = superhero.isPresent() ? Converter.convertToJson(superhero) : "Hero could not be found.";
         HttpUtils.render(http, resp);
     }
 

@@ -36,8 +36,8 @@ public class DispatcherServer implements HttpHandler {
         }
     }
 
-    private List<String> extractPathVariables(HttpExchange http) {
-        List<String> vars = new ArrayList<>();
+    private List<Object> extractPathVariables(HttpExchange http) {
+        List<Object> vars = new ArrayList<>();
         String[] pathElements = path.split("/");
         pathElements = Arrays.copyOfRange(pathElements, 1, pathElements.length);
         String[] uriElements = http.getRequestURI().getPath().split("/");
@@ -46,7 +46,9 @@ public class DispatcherServer implements HttpHandler {
         if (pathElements.length != uriElements.length) return null;
 
         for (int i = 0; i < pathElements.length; i++) {
-            if (pathElements[i].matches("^<.+>$")) {
+            if (pathElements[i].matches("^<.+:int>$")) {
+                vars.add(Integer.valueOf(uriElements[i]));
+            } else if (pathElements[i].matches("^<.+>$")) {
                 vars.add(uriElements[i]);
             } else if (!pathElements[i].equals(uriElements[i])) {
                 return null;
@@ -65,7 +67,7 @@ public class DispatcherServer implements HttpHandler {
 
     public void handle(HttpExchange http) throws IOException {
         String method = http.getRequestMethod();
-        List<String> pathVars = new ArrayList<>();
+        List<Object> pathVars = new ArrayList<>();
         if (path != null) {
             pathVars = extractPathVariables(http);
         }
@@ -86,7 +88,7 @@ public class DispatcherServer implements HttpHandler {
             this.method = method;
         }
 
-        public void handleRequest(HttpExchange http, List<String> args) {
+        public void handleRequest(HttpExchange http, List<Object> args) {
             try {
                 Object[] params = new Object[args.size() + 1];
                 params[0] = http;
