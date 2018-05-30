@@ -2,9 +2,7 @@ package com.danielcs.webroute.controllers;
 
 import com.danielcs.webroute.data.MockData;
 import com.danielcs.webroute.models.Superhero;
-import com.danielcs.webroute.server.HttpUtils;
-import com.danielcs.webroute.server.WebRoute;
-import com.sun.net.httpserver.HttpExchange;
+import com.danielcs.webroute.server.*;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -12,40 +10,41 @@ import java.util.Optional;
 public class SuperheroController {
 
     @WebRoute(path = "/superhero/<alias>")
-    public void getHeroByAlias(HttpExchange http, String alias) throws IOException {
+    public void getHeroByAlias(Request req, Response resp, String alias) throws IOException {
         Optional<Superhero> superhero = MockData.superHeroes.stream()
                 .filter(hero -> hero.getAlias().equals(alias))
                 .findFirst();
-        String resp = superhero.isPresent() ? Converter.convertToJson(superhero) : "Hero could not be found.";
-        HttpUtils.render(http, resp);
+        Object rsp = superhero.isPresent() ? superhero.get() : "Hero could not be found.";
+        System.out.println(req.getPath() + "\n" + req.getAddress() + "\n" + req.getHeaders());
+        resp.sendObject(rsp);
     }
 
     @WebRoute(path = "/superhero")
-    public void getAllSuperheroes(HttpExchange http) throws IOException {
-        String resp = Converter.convertToJson(MockData.superHeroes);
-        HttpUtils.render(http, resp);
+    public void getAllSuperheroes(Request req, Response resp) throws IOException {
+        System.out.println(req.getQueryParams());
+        resp.sendObject(MockData.superHeroes);
     }
 
-    @WebRoute(path = "/superhero", method = WebRoute.Method.POST)
-    public void addSuperhero(HttpExchange http) throws  IOException {
-        Superhero hero = Converter.covertFromJson(HttpUtils.getRequestBody(http), Superhero.class);
+    @WebRoute(path = "/superhero", method = WebRoute.Method.POST, params = WebRoute.ParseMode.JSON, input = Superhero.class)
+    public void addSuperhero(Superhero hero, Response response) throws  IOException {
+        System.out.println(hero + " just arrived!");
         hero.setId(MockData.superHeroes.size());
         MockData.superHeroes.add(hero);
-        HttpUtils.render(http, "Superhero was added with id: " + hero.getId());
+        response.addHeader("Test", "Works");
+        response.sendObject(hero);
     }
 
     @WebRoute(path = "/superhero", method = WebRoute.Method.PUT)
-    public void modifySuperhero(HttpExchange http) throws IOException {
-        HttpUtils.render(http, "Superhero was updated!");
+    public void modifySuperhero(Request req, Response resp) throws IOException {
+        resp.sendString("Superhero was updated!");
     }
 
     @WebRoute(path = "/superhero", method = WebRoute.Method.DELETE)
-    public void deleteSuperhero(HttpExchange http) throws IOException {
-        String id = http.getRequestURI().getQuery().split("=")[1];
+    public void deleteSuperhero(Request req, Response resp) throws IOException {
+        String id = req.getQueryParam("id");
         Superhero hero = MockData.superHeroes.get(Integer.valueOf(id));
         MockData.superHeroes.remove(hero);
-        String resp = Converter.convertToJson(hero);
-        HttpUtils.render(http, resp);
+        resp.sendObject(hero);
     }
 
 }

@@ -45,4 +45,14 @@ public class Superpower {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
+
+    @Override
+    public String toString() {
+        return "Superpower{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", powerlevel=" + powerlevel +
+                ", imagePath='" + imagePath + '\'' +
+                '}';
+    }
 }

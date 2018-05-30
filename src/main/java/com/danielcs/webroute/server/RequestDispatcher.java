@@ -1,5 +1,6 @@
 package com.danielcs.webroute.server;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -13,6 +14,8 @@ class RequestDispatcher implements HttpHandler {
 
     private Map<String, Handler> handlers = new HashMap<>();
     private String path;
+    private HttpExchangeProcessor processor;
+    private Gson converter = new Gson();
 
     RequestDispatcher(Map<String, Method> methods, String path) {
         initHandlers(methods);
@@ -82,18 +85,42 @@ class RequestDispatcher implements HttpHandler {
 
         private final Object caller;
         private final Method method;
+        private final WebRoute.ParseMode parseMode;
+        private Class JsonType;
 
         Handler(Object caller, Method method) {
             this.caller = caller;
             this.method = method;
+            this.parseMode = method.getAnnotation(WebRoute.class).params();
+            if (parseMode != WebRoute.ParseMode.NONE && processor == null) {
+                processor = new HttpExchangeProcessor(converter);
+            }
+            if (parseMode == WebRoute.ParseMode.JSON) {
+                JsonType = method.getAnnotation(WebRoute.class).input();
+            }
         }
 
+        @SuppressWarnings("unchecked")
         void handleRequest(HttpExchange http, List<Object> args) {
             try {
-                Object[] params = new Object[args.size() + 1];
-                params[0] = http;
+                int numberOfArgs = (parseMode == WebRoute.ParseMode.NONE) ? 1 : 2;
+                Object[] params = new Object[args.size() + numberOfArgs];
+
+                switch (parseMode) {
+                    case WRAP:
+                        params[0] = processor.getRequest(http);
+                        params[1] = processor.getResponse(http);
+                        break;
+                    case JSON:
+                        params[0] = processor.getRequest(http).getObjectFromBody(JsonType);
+                        params[1] = processor.getResponse(http);
+                        break;
+                    case NONE:
+                        params[0] = http;
+                }
+
                 for (int i = 0; i < args.size(); i++) {
-                    params[i + 1] = args.get(i);
+                    params[i + numberOfArgs] = args.get(i);
                 }
                 method.invoke(caller, params);
             } catch (IllegalAccessException | InvocationTargetException e) {

@@ -77,4 +77,16 @@ public class Superhero {
     public void removeSuperpower(Superpower power) {
         this.superpowers.remove(power);
     }
+
+    @Override
+    public String toString() {
+        return "Superhero{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", alias='" + alias + '\'' +
+                ", age=" + age +
+                ", powerlevel=" + powerlevel +
+                ", superpowers=" + superpowers +
+                '}';
+    }
 }
