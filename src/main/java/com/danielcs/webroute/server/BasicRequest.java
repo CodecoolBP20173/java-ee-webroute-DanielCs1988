@@ -4,15 +4,17 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 class BasicRequest implements Request {
 
     private final HttpExchange http;
     private final Gson converter;
+    private Map<String, String> queryParamCache;
+    private Map<String, String> paramCache;
 
     BasicRequest(HttpExchange http, Gson converter) {
         this.http = http;
@@ -34,13 +36,15 @@ class BasicRequest implements Request {
 
     @Override
     public String getParam(String key) {
-        // TODO: access x-www-form-etc encoded paramType
-        return null;
+        return paramCache == null ? null : getParams().get(key);
     }
 
     @Override
     public Map<String, String> getParams() {
-        return null;
+        if (paramCache == null) {
+            paramCache = parseUrl(getBody());
+        }
+        return paramCache;
     }
 
     @Override
@@ -70,19 +74,34 @@ class BasicRequest implements Request {
 
     @Override
     public String getQueryParam(String key) {
-        Matcher matcher = Pattern.compile(key + "=(.*)").matcher(http.getRequestURI().getQuery());
-        return matcher.find() ? matcher.group(1) : null;
+        return queryParamCache == null ? null : getQueryParams().get(key);
     }
 
     @Override
     public Map<String, String> getQueryParams() {
-        String query = http.getRequestURI().getQuery();
-        if (query == null) return null;
+        if (queryParamCache == null) {
+            String url = http.getRequestURI().getRawQuery();
+            queryParamCache = parseUrl(url);
+        }
+        return queryParamCache;
+    }
 
-        Map<String, String> queryParams = new HashMap<>();
+    private Map<String, String> parseUrl(String query) {
+        if (query == null) return null;
+        Map<String, String> queryParams = new LinkedHashMap<>();
         for (String kvPair : query.split("&")) {
-            String[] parts = kvPair.split("=");
-            queryParams.put(parts[0], parts[1]);
+            int idx = kvPair.indexOf("=");
+            if (idx == -1) {
+                continue;
+            }
+            try {
+                queryParams.put(
+                        URLDecoder.decode(kvPair.substring(0, idx), "UTF-8"),
+                        URLDecoder.decode(kvPair.substring(idx + 1), "UTF-8")
+                );
+            } catch (UnsupportedEncodingException e) {
+                System.out.println("Could not decode URL!");
+            }
         }
         return queryParams;
     }

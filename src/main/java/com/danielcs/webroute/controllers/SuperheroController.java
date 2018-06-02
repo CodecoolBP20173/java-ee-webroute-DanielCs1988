@@ -21,7 +21,6 @@ public class SuperheroController {
 
     @WebRoute(path = "/superhero")
     public void getAllSuperheroes(Request req, Response resp) throws IOException {
-        System.out.println(req.getQueryParams());
         resp.sendObject(MockData.superHeroes);
     }
 
