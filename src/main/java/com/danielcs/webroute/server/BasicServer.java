@@ -13,7 +13,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.Executors;
 
-/*
+/**
  * A basic implementation of the server interface, this class serves Http requests.
  * You have to set the PORT and the CONTROLLER PATH in the constructor.
  * The PATH will be automatically scanned for controllers annotated with the WebRoute annotation,
@@ -66,9 +66,6 @@ public class BasicServer implements Server {
         }
     }
 
-    /*
-     * Scans the classpath for configured routes then start listening on the preset port for requests.
-     */
     public void start() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
@@ -78,10 +75,5 @@ public class BasicServer implements Server {
         } catch (IOException e) {
             System.out.println("Failed to open connection!");
         }
-    }
-
-    public static void main(String[] args) {
-        Server server = new BasicServer(8000, "com.danielcs.webroute.controllers");
-        server.start();
     }
 }

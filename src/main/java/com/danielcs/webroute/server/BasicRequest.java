@@ -34,7 +34,7 @@ class BasicRequest implements Request {
 
     @Override
     public String getParam(String key) {
-        // TODO: access x-www-form-etc encoded params
+        // TODO: access x-www-form-etc encoded paramType
         return null;
     }
 

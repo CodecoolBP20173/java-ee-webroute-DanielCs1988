@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class HelloController {
 
-    @WebRoute(path = "/", params = WebRoute.ParseMode.NONE)
+    @WebRoute(path = "/", paramType = WebRoute.ParamType.NONE)
     public void doHello(HttpExchange legacy) throws IOException {
         String resp = "Hello World!";
         legacy.sendResponseHeaders(200, resp.getBytes().length);

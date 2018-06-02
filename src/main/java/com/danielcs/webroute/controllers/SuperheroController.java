@@ -25,7 +25,7 @@ public class SuperheroController {
         resp.sendObject(MockData.superHeroes);
     }
 
-    @WebRoute(path = "/superhero", method = WebRoute.Method.POST, params = WebRoute.ParseMode.JSON, input = Superhero.class)
+    @WebRoute(path = "/superhero", method = WebRoute.Method.POST, paramType = WebRoute.ParamType.JSON, model = Superhero.class)
     public void addSuperhero(Superhero hero, Response response) throws  IOException {
         System.out.println(hero + " just arrived!");
         hero.setId(MockData.superHeroes.size());

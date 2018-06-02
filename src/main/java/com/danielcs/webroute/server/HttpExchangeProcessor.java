@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 class HttpExchangeProcessor {
 
-    private Gson converter;
+    private final Gson converter;
 
     public HttpExchangeProcessor(Gson converter) {
         this.converter = converter;

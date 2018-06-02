@@ -10,13 +10,13 @@ public @interface WebRoute {
         GET, POST, PUT, DELETE
     }
 
-    enum ParseMode {
+    enum ParamType {
         NONE, JSON, WRAP
     }
 
     String path();
     Method method() default Method.GET;
-    ParseMode params() default ParseMode.WRAP;
-    Class input() default Object.class;
+    ParamType paramType() default ParamType.WRAP;
+    Class model() default Object.class;
 
 }

@@ -25,7 +25,7 @@ public class SuperpowerController {
         resp.sendObject(MockData.superPowers);
     }
 
-    @WebRoute(path = "/superpower", method = Method.POST, params = WebRoute.ParseMode.JSON, input = Superpower.class)
+    @WebRoute(path = "/superpower", method = Method.POST, paramType = WebRoute.ParamType.JSON, model = Superpower.class)
     public void addSuperpower(Superpower power, Response resp) throws  IOException {
         power.setId(MockData.superPowers.size());
         MockData.superPowers.add(power);

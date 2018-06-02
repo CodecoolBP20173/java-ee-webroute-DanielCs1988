@@ -34,4 +34,18 @@ class BasicResponse implements Response {
     public void addHeader(String key, String value) {
         http.getResponseHeaders().add(key, value);
     }
+
+    @Override
+    public void redirect(String path) throws IOException {
+        addHeader("Location", path);
+        http.sendResponseHeaders(302, 0);
+    }
+
+    @Override
+    public void sendError(int errorCode, String reason) throws IOException {
+        http.sendResponseHeaders(errorCode, reason.getBytes().length);
+        OutputStream out = http.getResponseBody();
+        out.write(reason.getBytes());
+        out.close();
+    }
 }
