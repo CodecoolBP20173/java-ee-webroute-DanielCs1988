@@ -1,5 +1,6 @@
 package com.danielcs.webroute.server;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.reflections.Reflections;
@@ -47,15 +48,29 @@ public class BasicServer implements Server {
 
     private void setupContext(HttpServer server) {
         Set<Method> controllers = scanClassPath();
-        Map<String, Map<String, Method>> pathMappings = new HashMap<>();
+        Map<String, Map<String, Handler>> pathMappings = new HashMap<>();
+        Map<Class, Object> callers = new HashMap<>();
+        HttpExchangeProcessor processor = new HttpExchangeProcessor(new Gson());
+
         for (Method controller : controllers) {
+            Class callerClass = controller.getDeclaringClass();
+            if (!callers.containsKey(callerClass)) {
+                try {
+                    callers.put(callerClass, callerClass.newInstance());
+                } catch (InstantiationException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            Object caller = callers.get(callerClass);
+            System.out.println(caller);
+            Handler handler = new Handler(caller, controller, processor);
             WebRoute route = controller.getAnnotation(WebRoute.class);
             String path = route.path();
             if (pathMappings.containsKey(path)) {
-                pathMappings.get(path).put(route.method().toString(), controller);
+                pathMappings.get(path).put(route.method().toString(), handler);
             } else {
-                Map<String, Method> methodMappings = new HashMap<>();
-                methodMappings.put(route.method().toString(), controller);
+                Map<String, Handler> methodMappings = new HashMap<>();
+                methodMappings.put(route.method().toString(), handler);
                 pathMappings.put(path, methodMappings);
             }
         }

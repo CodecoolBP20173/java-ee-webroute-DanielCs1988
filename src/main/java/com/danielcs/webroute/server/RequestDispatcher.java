@@ -10,32 +10,14 @@ import java.util.*;
 
 class RequestDispatcher implements HttpHandler {
 
-    private final Map<String, Handler> handlers = new HashMap<>();
+    private final Map<String, Handler> handlers;
     private final Gson converter = new Gson();
     private final HttpExchangeProcessor processor = new HttpExchangeProcessor(converter);
     private final String path;
 
-    RequestDispatcher(Map<String, Method> methods, String path) {
-        initHandlers(methods);
+    RequestDispatcher(Map<String, Handler> handlers, String path) {
+        this.handlers = handlers;
         this.path = path.matches(".*/<.*>.*") ? path : null;
-    }
-
-    private void initHandlers(Map<String, Method> methods) {
-        Map<Class, Object> callers = new HashMap<>();
-        for (String httpMethod : methods.keySet()) {
-            try {
-                Method method = methods.get(httpMethod);
-                // TODO: could optimize this further so that different route paths in the same class share the caller
-                Class callerClass = method.getDeclaringClass();
-                if (!callers.containsKey(callerClass)) {
-                    callers.put(callerClass, callerClass.newInstance());
-                }
-                Object caller = callers.get(callerClass);
-                handlers.put(httpMethod, new Handler(caller, method, processor));
-            } catch (InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private List<Object> extractPathVariables(HttpExchange http) {
