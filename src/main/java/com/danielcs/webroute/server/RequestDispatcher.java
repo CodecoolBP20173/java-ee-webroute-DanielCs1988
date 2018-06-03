@@ -21,12 +21,16 @@ class RequestDispatcher implements HttpHandler {
     }
 
     private void initHandlers(Map<String, Method> methods) {
+        Map<Class, Object> callers = new HashMap<>();
         for (String httpMethod : methods.keySet()) {
             try {
                 Method method = methods.get(httpMethod);
-                Object caller = method
-                        .getDeclaringClass()
-                        .newInstance();
+                // TODO: could optimize this further so that different route paths in the same class share the caller
+                Class callerClass = method.getDeclaringClass();
+                if (!callers.containsKey(callerClass)) {
+                    callers.put(callerClass, callerClass.newInstance());
+                }
+                Object caller = callers.get(callerClass);
                 handlers.put(httpMethod, new Handler(caller, method, processor));
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
