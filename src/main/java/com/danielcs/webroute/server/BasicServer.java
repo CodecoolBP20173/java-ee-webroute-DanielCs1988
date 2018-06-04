@@ -62,7 +62,6 @@ public class BasicServer implements Server {
                 }
             }
             Object caller = callers.get(callerClass);
-            System.out.println(caller);
             Handler handler = new Handler(caller, controller, processor);
             WebRoute route = controller.getAnnotation(WebRoute.class);
             String path = route.path();
